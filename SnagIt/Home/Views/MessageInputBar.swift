@@ -10,14 +10,20 @@ import UIKit
 final class MessageInputBar: UIView {
     private lazy var ui = createUI()
     private var textViewHeightConstraint: NSLayoutConstraint?
+    private var cachedHeight: CGFloat = 56
 
     var onSend: ((String) -> Void)?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        autoresizingMask = [.flexibleHeight]
+        cachedHeight = 56
+        self.frame.size.height = cachedHeight
+
         _ = ui
         layout()
         updateSendButtonState()
+        updateHeight()
     }
 
     required init?(coder: NSCoder) {
@@ -25,10 +31,7 @@ final class MessageInputBar: UIView {
     }
 
     override var intrinsicContentSize: CGSize {
-        CGSize(
-            width: UIView.noIntrinsicMetric,
-            height: UIView.noIntrinsicMetric
-        )
+        CGSize(width: UIView.noIntrinsicMetric, height: max(cachedHeight, 56))
     }
 
     override func layoutSubviews() {
@@ -209,9 +212,8 @@ private extension MessageInputBar {
 
         ui.textView.isScrollEnabled = fitting.height > maxH
         textViewHeightConstraint?.constant = clamped
-
+        cachedHeight = clamped + 16 + safeAreaInsets.bottom
         invalidateIntrinsicContentSize()
-        superview?.layoutIfNeeded()
     }
 
     func updateSendButtonState() {

@@ -12,16 +12,31 @@ final class ChatViewController: UIViewController {
     private var isObservingKeyboard = false
 
     private struct Message: Identifiable {
+        enum Status {
+            case sending
+            case sent
+            case failed
+
+            var description: String {
+                switch self {
+                case .sending: return "Sending..."
+                case .sent: return "Sent"
+                case .failed: return "Failed"
+                }
+            }
+        }
         let id = UUID()
         let text: String
         let isMine: Bool
         let date: Date
+        var status: Status = .sent
     }
 
     private lazy var ui = createUI()
     private var messages: [Message] = [
         Message(text: "lol lol lol 😆", isMine: false, date: Date()),
         Message(text: "XO XO XO", isMine: true, date: Date()),
+        Message(text: "LOOOL", isMine: false, date: Date()),
     ]
 
     override var inputAccessoryView: UIView? { ui.inputBar }
@@ -30,6 +45,7 @@ final class ChatViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+        title = "Friend"
         _ = ui
         layout()
         updateInsetsForKeyboard(overlapHeight: 0)
@@ -191,13 +207,19 @@ extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
         cellForRowAt indexPath: IndexPath
     ) -> UITableViewCell {
         let msg = messages[indexPath.row]
-        let cell =
+        guard let cell =
             tableView.dequeueReusableCell(
                 withIdentifier: MessageBubbleCell.reuseID,
                 for: indexPath
-            ) as! MessageBubbleCell
-
-        cell.configure(text: msg.text, isMine: msg.isMine)
+            ) as? MessageBubbleCell
+        else {
+            return UITableViewCell()
+        }
+        cell.configure(
+            text: msg.text,
+            isMine: msg.isMine,
+            statusText: msg.isMine ? msg.status.description : nil
+        )
         return cell
     }
 }

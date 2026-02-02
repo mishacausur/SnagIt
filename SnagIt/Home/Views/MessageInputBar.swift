@@ -57,6 +57,18 @@ extension MessageInputBar: UITextViewDelegate {
         updateSendButtonState()
         updateHeight()
     }
+
+    func textView(
+        _ textView: UITextView,
+        shouldChangeTextIn range: NSRange,
+        replacementText text: String
+    ) -> Bool {
+        if text == "\n" {
+            sendTapped()
+            return false
+        }
+        return true
+    }
 }
 
 private extension MessageInputBar {
@@ -90,6 +102,10 @@ private extension MessageInputBar {
             $0.backgroundColor = .clear
             $0.font = .preferredFont(forTextStyle: .body)
             $0.isScrollEnabled = false
+            $0.returnKeyType = .send
+            $0.autocorrectionType = .default
+            $0.smartDashesType = .no
+            $0.smartQuotesType = .no
             $0.textContainerInset = UIEdgeInsets(
                 top: 10,
                 left: 10,

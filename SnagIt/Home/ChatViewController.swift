@@ -33,6 +33,11 @@ final class ChatViewController: UIViewController {
         super.viewDidAppear(animated)
         becomeFirstResponder()
     }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        layout()
+    }
 }
 
 private extension ChatViewController {
@@ -59,7 +64,10 @@ private extension ChatViewController {
             $0.frame.size.height = 54
             view.addSubview($0)
         }
-
+         
+         inputView.onSend = { [weak self] text in
+             self?.appendMyMessage(text)
+         }
         return UI(
             tableView: tableView,
             inputBar: inputView
@@ -75,5 +83,38 @@ private extension ChatViewController {
             ui.tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             ui.tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
+    }
+    
+    func appendMyMessage(_ text: String) {
+        messages.append(Message(text: text, isMine: true, date: Date()))
+        ui.tableView.reloadData()
+        scrollToBottom(animated: true)
+    }
+
+    func scrollToBottom(animated: Bool) {
+        guard !messages.isEmpty else { return }
+        DispatchQueue.main.async {
+            let last = IndexPath(row: self.messages.count - 1, section: 0)
+            self.ui.tableView.scrollToRow(at: last, at: .bottom, animated: animated)
+        }
+    }
+}
+
+extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        messages.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let msg = messages[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+
+        var content = cell.defaultContentConfiguration()
+        content.text = msg.text
+        content.textProperties.color = msg.isMine ? .systemBlue : .label
+        cell.contentConfiguration = content
+
+        cell.selectionStyle = .none
+        return cell
     }
 }

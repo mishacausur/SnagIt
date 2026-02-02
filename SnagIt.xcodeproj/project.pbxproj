@@ -14,29 +14,17 @@
 		B6A3991B2F2B5665008BC934 /* Exceptions for "SnagIt" folder in "SnagIt" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Home/Views/MessageInputBar.swift,
 				Info.plist,
 			);
 			target = B6A399082F2B5663008BC934 /* SnagIt */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		B6A399492F309647008BC934 /* Exceptions for "SnagIt" folder in "Copy Bundle Resources" phase from "SnagIt" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = B6A399072F2B5663008BC934 /* Resources */;
-			membershipExceptions = (
-				Home/Views/MessageInputBar.swift,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B6A3990B2F2B5663008BC934 /* SnagIt */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				B6A3991B2F2B5665008BC934 /* Exceptions for "SnagIt" folder in "SnagIt" target */,
-				B6A399492F309647008BC934 /* Exceptions for "SnagIt" folder in "Copy Bundle Resources" phase from "SnagIt" target */,
 			);
 			path = SnagIt;
 			sourceTree = "<group>";

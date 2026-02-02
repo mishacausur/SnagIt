@@ -111,10 +111,7 @@ private extension MessageInputBar {
                 UIImage(systemName: "arrow.up.circle.fill"),
                 for: .normal
             )
-            $0.preferredSymbolConfiguration = UIImage.SymbolConfiguration(
-                pointSize: 24,
-                weight: .semibold
-            )
+
             $0.addTarget(
                 self,
                 action: #selector(sendTapped),

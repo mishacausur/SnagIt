@@ -9,8 +9,6 @@ import UIKit
 
 final class ChatViewController: UIViewController {
 
-    private var isObservingKeyboard = false
-
     private struct Message: Identifiable {
         enum Status {
             case sending
@@ -32,6 +30,10 @@ final class ChatViewController: UIViewController {
         var status: Status = .sent
     }
 
+    private let chatService = ChatService()
+    private var incomingTask: Task<Void, Never>?
+    private var sendTasks: [UUID: Task<Void, Never>] = [:]
+    private var isObservingKeyboard = false
     private lazy var ui = createUI()
     private var messages: [Message] = [
         Message(text: "lol lol lol 😆", isMine: false, date: Date()),
@@ -56,11 +58,14 @@ final class ChatViewController: UIViewController {
         super.viewDidAppear(animated)
         becomeFirstResponder()
         startObservingKeyboardIfNeeded()
+        startIncomingIfNeeded()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         stopObservingKeyboard()
+        incomingTask?.cancel()
+        incomingTask = nil
     }
 
 }
@@ -112,9 +117,45 @@ extension ChatViewController {
     }
 
     fileprivate func appendMyMessage(_ text: String) {
-        messages.append(Message(text: text, isMine: true, date: Date()))
+        var msg = Message(text: text, isMine: true, date: Date())
+        msg.status = .sending
+        messages.append(msg)
+
         ui.tableView.reloadData()
         scrollToBottom(animated: true)
+
+        startSend(for: msg.id)
+    }
+
+    private func startSend(for messageId: UUID) {
+        sendTasks[messageId]?.cancel()
+        sendTasks[messageId] = Task { [weak self] in
+            guard let self else { return }
+
+            guard
+                let text = self.messages.first(where: { $0.id == messageId })?
+                    .text
+            else { return }
+
+            do {
+                try await self.chatService.send(text)
+                await MainActor.run {
+                    self.setStatus(.sent, for: messageId)
+                }
+            } catch {
+                if Task.isCancelled { return }
+                await MainActor.run {
+                    self.setStatus(.failed, for: messageId)
+                }
+            }
+        }
+    }
+
+    private func setStatus(_ status: Message.Status, for messageId: UUID) {
+        guard let idx = messages.firstIndex(where: { $0.id == messageId })
+        else { return }
+        messages[idx].status = status
+        ui.tableView.reloadData()
     }
 
     fileprivate func scrollToBottom(animated: Bool) {
@@ -163,6 +204,26 @@ extension ChatViewController {
             object: nil
         )
     }
+    
+    private func startIncomingIfNeeded() {
+        guard incomingTask == nil else { return }
+
+        incomingTask = Task { [weak self] in
+            guard let self else { return }
+
+            for await text in await self.chatService.incomingMessage() {
+                if Task.isCancelled { break }
+
+                await MainActor.run {
+                    var msg = Message(text: text, isMine: false, date: Date())
+                    msg.status = .sent
+                    self.messages.append(msg)
+                    self.ui.tableView.reloadData()
+                    self.scrollToBottom(animated: true)
+                }
+            }
+        }
+    }
 
     @objc private func handleKeyboardWillChangeFrame(_ note: Notification) {
         guard
@@ -207,11 +268,12 @@ extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
         cellForRowAt indexPath: IndexPath
     ) -> UITableViewCell {
         let msg = messages[indexPath.row]
-        guard let cell =
-            tableView.dequeueReusableCell(
-                withIdentifier: MessageBubbleCell.reuseID,
-                for: indexPath
-            ) as? MessageBubbleCell
+        guard
+            let cell =
+                tableView.dequeueReusableCell(
+                    withIdentifier: MessageBubbleCell.reuseID,
+                    for: indexPath
+                ) as? MessageBubbleCell
         else {
             return UITableViewCell()
         }

@@ -7,9 +7,16 @@
 
 import UIKit
 
+#if DEBUG
+    import os.signpost
+#endif
+
 final class MessageBubbleCell: UITableViewCell {
 
     static let reuseID = "MessageBubbleCell"
+    #if DEBUG
+        private let log = OSLog(subsystem: "app", category: .pointsOfInterest)
+    #endif
 
     private lazy var ui = createUI()
     private var leadingConstraint: NSLayoutConstraint?
@@ -47,7 +54,10 @@ final class MessageBubbleCell: UITableViewCell {
             leadingConstraint?.isActive = true
         }
 
-        let shouldShowStatus = isMine && (statusText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+        let shouldShowStatus =
+            isMine
+            && (statusText?.trimmingCharacters(in: .whitespacesAndNewlines)
+                .isEmpty == false)
         ui.statusLabel.isHidden = !shouldShowStatus
         ui.statusLabel.text = shouldShowStatus ? statusText : nil
 
@@ -112,6 +122,9 @@ extension MessageBubbleCell {
     }
 
     fileprivate func layout() {
+        #if DEBUG
+            os_signpost(.begin, log: log, name: "Feed render")
+        #endif
         leadingConstraint = ui.bubble.leadingAnchor.constraint(
             equalTo: contentView.leadingAnchor,
             constant: 14
@@ -178,5 +191,8 @@ extension MessageBubbleCell {
         bubbleToBottomConstraint?.isActive = true
         bubbleToStatusConstraint?.isActive = false
         ui.statusLabel.isHidden = true
+        #if DEBUG
+            os_signpost(.end, log: log, name: "Feed render")
+        #endif
     }
 }

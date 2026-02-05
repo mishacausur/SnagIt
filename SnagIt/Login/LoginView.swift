@@ -21,20 +21,20 @@ struct LoginViewModel {
     let didLogin: AsyncStream<Void>
     let tasks: [Task<Void, Error>]  // disposables
 
-    func makeBindings(_ bindings: Bindings) -> Self {
-        
-        let loginTask = Task {
-            for await _ in bindings.didLogin. {
-                
-            }
-        }
-
-        return Self(
-            canLogin: <#T##AsyncStream<Bool>#>,
-            error: <#T##AsyncStream<any Error>#>,
-            isLoading: <#T##AsyncStream<Bool>#>,
-            didLogin: <#T##AsyncStream<Void>#>,
-            tasks: <#T##[Task<Void, any Error>]#>
-        )
-    }
+//    func makeBindings(_ bindings: Bindings) -> Self {
+//        
+//        let loginTask = Task {
+//            for await _ in bindings.didLogin. {
+//                
+//            }
+//        }
+//
+//        return Self(
+//            canLogin: <#T##AsyncStream<Bool>#>,
+//            error: <#T##AsyncStream<any Error>#>,
+//            isLoading: <#T##AsyncStream<Bool>#>,
+//            didLogin: <#T##AsyncStream<Void>#>,
+//            tasks: <#T##[Task<Void, any Error>]#>
+//        )
+//    }
 }
